@@ -21,6 +21,7 @@ class DatabaseSeeder extends Seeder
             'email' => 'leothan522@gmail.com',
             'email_verified_at' => now(),
             'password' => Hash::make('20025623'),
+            'is_admin' => 1
         ]);
     }
 }
