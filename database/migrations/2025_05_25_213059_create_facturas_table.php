@@ -27,7 +27,7 @@ return new class extends Migration
             $table->text('empresa_image')->nullable();
             $table->bigInteger('clientes_id')->unsigned();
             $table->string('cliente_rif')->nullable();
-            $table->string('cliente_nombre');
+            $table->string('cliente_nombre')->nullable();
             $table->string('cliente_telefono')->nullable();
             $table->string('cliente_email')->nullable();
             $table->text('cliente_direccion')->nullable();

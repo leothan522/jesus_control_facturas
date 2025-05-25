@@ -21,7 +21,7 @@ class Empresa extends Model
 
     public function facturas(): HasMany
     {
-        return $this->hasMany(Factura::class, 'facturas_id', 'id');
+        return $this->hasMany(Factura::class, 'empresas_id', 'id');
     }
 
 }

@@ -36,7 +36,7 @@ class Factura extends Model
 
     public function empresa(): BelongsTo
     {
-        return $this->belongsTo(Empresa::class, 'facturas_id', 'id');
+        return $this->belongsTo(Empresa::class, 'empresas_id', 'id');
     }
 
     public function cliente(): BelongsTo
