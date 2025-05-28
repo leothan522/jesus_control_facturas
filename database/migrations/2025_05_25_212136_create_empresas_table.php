@@ -19,6 +19,8 @@ return new class extends Migration
             $table->string('email')->nullable();
             $table->text('direccion')->nullable();
             $table->text('image')->nullable();
+            $table->string('formato_factura')->nullable();
+            $table->integer('correlativo_factura')->nullable();
             $table->timestamps();
             $table->softDeletes();
         });

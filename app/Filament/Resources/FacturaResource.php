@@ -23,20 +23,52 @@ class FacturaResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\TextInput::make('numero')
-                    ->required()
-                    ->maxLength(255),
-                Forms\Components\DatePicker::make('fecha')
-                    ->required(),
-                Forms\Components\Select::make('moneda')
-                    ->options([
-                        'Bs.' => 'Bs.',
-                        'USD' => 'USD'
-                    ])
-                    ->required(),
-                Forms\Components\Toggle::make('es_credito'),
-                Forms\Components\TextInput::make('dias_credito')
-                    ->numeric(),
+                Forms\Components\Fieldset::make()
+                ->schema([
+                    Forms\Components\TextInput::make('numero')
+                        ->required()
+                        ->maxLength(255),
+                    Forms\Components\DatePicker::make('fecha')
+                        ->required(),
+                    Forms\Components\Select::make('moneda')
+                        ->options([
+                            'Bs.' => 'Bs.',
+                            'USD' => 'USD'
+                        ])
+                        ->required()
+                ])
+                ->columns(3),
+                Forms\Components\Fieldset::make()
+                ->schema([
+                    Forms\Components\Select::make('clientes_id')
+                        ->label('cliente')
+                        ->relationship('cliente', 'nombre')
+                        ->searchable(['rif', 'nombre'])
+                        ->preload()
+                        ->required()
+                        ->createOptionForm([
+                            Forms\Components\TextInput::make('rif')
+                                ->unique()
+                                ->maxLength(255)
+                                ->required(),
+                            Forms\Components\TextInput::make('nombre')
+                                ->maxLength(255)
+                                ->required(),
+                            Forms\Components\TextInput::make('telefono')
+                                ->tel()
+                                ->telRegex('/^[+]*[(]{0,1}[0-9]{1,4}[)]{0,1}[-\s\.\/0-9]*$/'),
+                            Forms\Components\TextInput::make('email')
+                                ->email(),
+                            Forms\Components\Textarea::make('direccion'),
+                        ])
+                    ->columnSpan(2),
+                    Forms\Components\Toggle::make('es_credito')
+                    ->inline(false),
+                    Forms\Components\TextInput::make('dias_credito')
+                        ->numeric(),
+                ])
+                ->columns(4),
+
                 Forms\Components\Hidden::make('empresas_id')
                     ->default(1),
                 Forms\Components\Hidden::make('empresa_rif'),
@@ -45,27 +77,6 @@ class FacturaResource extends Resource
                 Forms\Components\Hidden::make('empresa_email'),
                 Forms\Components\Hidden::make('empresa_direccion'),
                 Forms\Components\Hidden::make('empresa_image'),
-                Forms\Components\Select::make('clientes_id')
-                    ->label('cliente')
-                    ->relationship('cliente', 'nombre')
-                    ->searchable(['rif', 'nombre'])
-                    ->preload()
-                    ->required()
-                    ->createOptionForm([
-                        Forms\Components\TextInput::make('rif')
-                            ->unique()
-                            ->maxLength(255)
-                            ->required(),
-                        Forms\Components\TextInput::make('nombre')
-                            ->maxLength(255)
-                            ->required(),
-                        Forms\Components\TextInput::make('telefono')
-                            ->tel()
-                            ->telRegex('/^[+]*[(]{0,1}[0-9]{1,4}[)]{0,1}[-\s\.\/0-9]*$/'),
-                        Forms\Components\TextInput::make('email')
-                            ->email(),
-                        Forms\Components\Textarea::make('direccion'),
-                    ]),
                 Forms\Components\Hidden::make('cliente_rif'),
                 Forms\Components\Hidden::make('cliente_nombre'),
                 Forms\Components\Hidden::make('cliente_telefono'),

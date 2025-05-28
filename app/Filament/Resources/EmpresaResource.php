@@ -18,6 +18,7 @@ class EmpresaResource extends Resource
     protected static ?string $model = Empresa::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?int $navigationSort = 99;
 
     public static function form(Form $form): Form
     {
@@ -40,6 +41,9 @@ class EmpresaResource extends Resource
                 ->image()
                 ->imageEditor()
                 ->maxSize(2024),
+                Forms\Components\TextInput::make('formato_factura'),
+                Forms\Components\TextInput::make('correlativo_factura')
+                ->integer(),
             ]);
     }
 
@@ -51,10 +55,10 @@ class EmpresaResource extends Resource
                     ->searchable(),
                 Tables\Columns\TextColumn::make('nombre')
                     ->searchable(),
-                Tables\Columns\TextColumn::make('telefono')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('email')
-                    ->searchable(),
+                Tables\Columns\TextColumn::make('formato_factura')
+                ->searchable(),
+                Tables\Columns\TextColumn::make('correlativo_factura')
+                ->numeric(),
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()

@@ -16,7 +16,8 @@ class Empresa extends Model
         'telefono',
         'email',
         'direccion',
-        'image',
+        'formato_factura',
+        'correlativo_factura',
     ];
 
     public function facturas(): HasMany
