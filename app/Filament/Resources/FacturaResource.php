@@ -4,9 +4,12 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\FacturaResource\Pages;
 use App\Filament\Resources\FacturaResource\RelationManagers;
+use App\Models\Empresa;
 use App\Models\Factura;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Forms\Get;
+use Filament\Forms\Set;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
@@ -26,7 +29,15 @@ class FacturaResource extends Resource
                 Forms\Components\Fieldset::make()
                 ->schema([
                     Forms\Components\TextInput::make('numero')
+                        ->default(function () {
+                            $empresa = Empresa::find(1);
+                            if ($empresa) {
+                                return $empresa->formato_factura."".$empresa->correlativo_factura;
+                            }
+                            return null;
+                        })
                         ->required()
+                        ->unique()
                         ->maxLength(255),
                     Forms\Components\DatePicker::make('fecha')
                         ->required(),
@@ -63,25 +74,75 @@ class FacturaResource extends Resource
                         ])
                     ->columnSpan(2),
                     Forms\Components\Toggle::make('es_credito')
-                    ->inline(false),
+                    ->inline(false)
+                    ->live()
+                    ->afterStateUpdated(function (Get $get, Set $set){
+                        $isCredito = $get('es_credito');
+                        if (!$isCredito) {
+                            $set('dias_credito', '');
+                        }
+                    }),
                     Forms\Components\TextInput::make('dias_credito')
-                        ->numeric(),
+                        ->numeric()
+                    ->requiredIf('es_credito', true)
+                        ->readOnly(fn(Get $get) => !$get('es_credito')),
                 ])
                 ->columns(4),
-
                 Forms\Components\Hidden::make('empresas_id')
                     ->default(1),
-                Forms\Components\Hidden::make('empresa_rif'),
-                Forms\Components\Hidden::make('empresa_nombre'),
-                Forms\Components\Hidden::make('empresa_telefono'),
-                Forms\Components\Hidden::make('empresa_email'),
-                Forms\Components\Hidden::make('empresa_direccion'),
-                Forms\Components\Hidden::make('empresa_image'),
-                Forms\Components\Hidden::make('cliente_rif'),
-                Forms\Components\Hidden::make('cliente_nombre'),
-                Forms\Components\Hidden::make('cliente_telefono'),
-                Forms\Components\Hidden::make('cliente_email'),
-                Forms\Components\Hidden::make('cliente_direccion'),
+                Forms\Components\TextInput::make('empresa_rif')
+                    ->default(function () {
+                        $empresa = Empresa::find(1);
+                        if ($empresa) {
+                            return $empresa->rif;
+                        }
+                        return null;
+                    }),
+                Forms\Components\TextInput::make('empresa_nombre')
+                    ->default(function () {
+                        $empresa = Empresa::find(1);
+                        if ($empresa) {
+                            return $empresa->nombre;
+                        }
+                        return null;
+                    }),
+                Forms\Components\TextInput::make('empresa_telefono')
+                    ->default(function () {
+                        $empresa = Empresa::find(1);
+                        if ($empresa) {
+                            return $empresa->telefono;
+                        }
+                        return null;
+                    }),
+                Forms\Components\TextInput::make('empresa_email')
+                    ->default(function () {
+                        $empresa = Empresa::find(1);
+                        if ($empresa) {
+                            return $empresa->email;
+                        }
+                        return null;
+                    }),
+                Forms\Components\TextInput::make('empresa_direccion')
+                    ->default(function () {
+                        $empresa = Empresa::find(1);
+                        if ($empresa) {
+                            return $empresa->direccion;
+                        }
+                        return null;
+                    }),
+                Forms\Components\TextInput::make('empresa_image')
+                    ->default(function () {
+                        $empresa = Empresa::find(1);
+                        if ($empresa) {
+                            return $empresa->image;
+                        }
+                        return null;
+                    }),
+                Forms\Components\TextInput::make('cliente_rif'),
+                Forms\Components\TextInput::make('cliente_nombre'),
+                Forms\Components\TextInput::make('cliente_telefono'),
+                Forms\Components\TextInput::make('cliente_email'),
+                Forms\Components\TextInput::make('cliente_direccion'),
             ]);
     }
 
