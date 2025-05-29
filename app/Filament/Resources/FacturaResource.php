@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\FacturaResource\Pages;
 use App\Filament\Resources\FacturaResource\RelationManagers;
+use App\Models\Cliente;
 use App\Models\Empresa;
 use App\Models\Factura;
 use Filament\Forms;
@@ -52,11 +53,12 @@ class FacturaResource extends Resource
                 Forms\Components\Fieldset::make()
                 ->schema([
                     Forms\Components\Select::make('clientes_id')
-                        ->label('cliente')
+                        ->label('Cliente')
                         ->relationship('cliente', 'nombre')
                         ->searchable(['rif', 'nombre'])
                         ->preload()
                         ->required()
+                        ->live()
                         ->createOptionForm([
                             Forms\Components\TextInput::make('rif')
                                 ->unique()
@@ -72,6 +74,22 @@ class FacturaResource extends Resource
                                 ->email(),
                             Forms\Components\Textarea::make('direccion'),
                         ])
+                        ->afterStateUpdated(function (Get $get, Set $set){
+                            $cliente = Cliente::find($get('clientes_id'));
+                            if ($cliente){
+                                $set('cliente_rif', $cliente->rif);
+                                $set('cliente_nombre', $cliente->nombre);
+                                $set('cliente_telefono', $cliente->telefono);
+                                $set('cliente_email', $cliente->email);
+                                $set('cliente_direccion', $cliente->direccion);
+                            }else{
+                                $set('cliente_rif', '');
+                                $set('cliente_nombre', '');
+                                $set('cliente_telefono', '');
+                                $set('cliente_email', '');
+                                $set('cliente_direccion', '');
+                            }
+                        })
                     ->columnSpan(2),
                     Forms\Components\Toggle::make('es_credito')
                     ->inline(false)
@@ -90,7 +108,7 @@ class FacturaResource extends Resource
                 ->columns(4),
                 Forms\Components\Hidden::make('empresas_id')
                     ->default(1),
-                Forms\Components\TextInput::make('empresa_rif')
+                Forms\Components\Hidden::make('empresa_rif')
                     ->default(function () {
                         $empresa = Empresa::find(1);
                         if ($empresa) {
@@ -98,7 +116,7 @@ class FacturaResource extends Resource
                         }
                         return null;
                     }),
-                Forms\Components\TextInput::make('empresa_nombre')
+                Forms\Components\Hidden::make('empresa_nombre')
                     ->default(function () {
                         $empresa = Empresa::find(1);
                         if ($empresa) {
@@ -106,7 +124,7 @@ class FacturaResource extends Resource
                         }
                         return null;
                     }),
-                Forms\Components\TextInput::make('empresa_telefono')
+                Forms\Components\Hidden::make('empresa_telefono')
                     ->default(function () {
                         $empresa = Empresa::find(1);
                         if ($empresa) {
@@ -114,7 +132,7 @@ class FacturaResource extends Resource
                         }
                         return null;
                     }),
-                Forms\Components\TextInput::make('empresa_email')
+                Forms\Components\Hidden::make('empresa_email')
                     ->default(function () {
                         $empresa = Empresa::find(1);
                         if ($empresa) {
@@ -122,7 +140,7 @@ class FacturaResource extends Resource
                         }
                         return null;
                     }),
-                Forms\Components\TextInput::make('empresa_direccion')
+                Forms\Components\Hidden::make('empresa_direccion')
                     ->default(function () {
                         $empresa = Empresa::find(1);
                         if ($empresa) {
@@ -130,7 +148,7 @@ class FacturaResource extends Resource
                         }
                         return null;
                     }),
-                Forms\Components\TextInput::make('empresa_image')
+                Forms\Components\Hidden::make('empresa_image')
                     ->default(function () {
                         $empresa = Empresa::find(1);
                         if ($empresa) {
@@ -138,11 +156,11 @@ class FacturaResource extends Resource
                         }
                         return null;
                     }),
-                Forms\Components\TextInput::make('cliente_rif'),
-                Forms\Components\TextInput::make('cliente_nombre'),
-                Forms\Components\TextInput::make('cliente_telefono'),
-                Forms\Components\TextInput::make('cliente_email'),
-                Forms\Components\TextInput::make('cliente_direccion'),
+                Forms\Components\Hidden::make('cliente_rif'),
+                Forms\Components\Hidden::make('cliente_nombre'),
+                Forms\Components\Hidden::make('cliente_telefono'),
+                Forms\Components\Hidden::make('cliente_email'),
+                Forms\Components\Hidden::make('cliente_direccion'),
             ]);
     }
 
