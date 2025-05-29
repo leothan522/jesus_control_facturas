@@ -38,12 +38,13 @@ class EmpresaResource extends Resource
                     ->maxLength(255),
                 Forms\Components\Textarea::make('direccion'),
                 Forms\Components\FileUpload::make('image')
-                ->image()
-                ->imageEditor()
-                ->maxSize(2024),
+                    ->image()
+                    ->imageEditor()
+                    ->directory('images-empresas')
+                    ->maxSize(2024),
                 Forms\Components\TextInput::make('formato_factura'),
                 Forms\Components\TextInput::make('correlativo_factura')
-                ->integer(),
+                    ->integer(),
             ]);
     }
 
@@ -56,9 +57,9 @@ class EmpresaResource extends Resource
                 Tables\Columns\TextColumn::make('nombre')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('formato_factura')
-                ->searchable(),
+                    ->searchable(),
                 Tables\Columns\TextColumn::make('correlativo_factura')
-                ->numeric(),
+                    ->numeric(),
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()
