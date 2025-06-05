@@ -2,9 +2,14 @@
 
 namespace App\Filament\Resources\FacturaResource\RelationManagers;
 
+use App\Models\Articulo;
+use App\Models\Item;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Forms\Get;
+use Filament\Forms\Set;
 use Filament\Resources\RelationManagers\RelationManager;
+use Filament\Support\Enums\MaxWidth;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
@@ -32,18 +37,35 @@ class ItemsRelationManager extends RelationManager
                             ->numeric(),
                         Forms\Components\TextInput::make('precio_dolar')
                             ->numeric(),
-                    ]),
-                Forms\Components\TextInput::make('descripcion')
+                    ])
+                    ->live()
+                ->afterStateUpdated(function (RelationManager $livewire, Get $get, Set $set){
+                    $factura = $livewire->getOwnerRecord();
+                    $articulos_id = $get('articulos_id');
+                    $articulo = Articulo::find($articulos_id);
+                    if ($articulo) {
+                        $set('descripcion', $articulo->descripcion);
+                        if ($factura->moneda == 'USD'){
+                            $set('precio', $articulo->precio_dolar);
+                        }else{
+                            $set('precio', $articulo->precio_bs);
+                        }
+                    }
+                }),
+                Forms\Components\Hidden::make('descripcion')
                     ->required(),
                 Forms\Components\TextInput::make('cantidad')
-                    ->integer()
+                    ->numeric()
                     ->required(),
-                Forms\Components\TextInput::make('moneda')
+                Forms\Components\Hidden::make('moneda')
+                    ->default(fn(RelationManager $livewire): string => $livewire->getOwnerRecord()->moneda)
                     ->required(),
                 Forms\Components\TextInput::make('precio')
                     ->numeric()
-                    ->required(),
-            ]);
+                    ->required()
+                    ->readOnly(fn(Get $get) => !$get('articulos_id')),
+            ])
+            ->columns(1);
     }
 
     public function table(Table $table): Table
@@ -52,16 +74,38 @@ class ItemsRelationManager extends RelationManager
             ->recordTitleAttribute('descripcion')
             ->columns([
                 Tables\Columns\TextColumn::make('descripcion'),
+                Tables\Columns\TextColumn::make('precio')
+                    ->prefix(fn(Item $item): string => $item->moneda." ")
+                    ->numeric(decimalPlaces: 2),
+                Tables\Columns\TextColumn::make('cantidad')
+                ->numeric(decimalPlaces: 2)
+                ->alignEnd(),
+                Tables\Columns\TextColumn::make('total')
+                    ->label('Sub Total')
+                ->numeric(decimalPlaces: 2)
+                ->default(function (Item $item){
+                    $precio = $item->precio;
+                    $cantidad = $item->cantidad;
+                    $total = $precio*$cantidad;
+                    return $total;
+                })
+                ->alignEnd(),
             ])
             ->filters([
                 //
             ])
             ->headerActions([
-                Tables\Actions\CreateAction::make(),
+                Tables\Actions\CreateAction::make()
+                ->label('Agregar item')
+                ->modalHeading('Agregar item')
+                ->modalWidth(MaxWidth::Medium),
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+                Tables\Actions\ActionGroup::make([
+                    Tables\Actions\EditAction::make()
+                        ->modalWidth(MaxWidth::Medium),
+                    Tables\Actions\DeleteAction::make(),
+                ]),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
