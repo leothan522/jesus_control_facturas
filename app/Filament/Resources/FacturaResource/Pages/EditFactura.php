@@ -16,4 +16,17 @@ class EditFactura extends EditRecord
             Actions\DeleteAction::make(),
         ];
     }
+
+    protected function getFooterWidgets(): array
+    {
+        return [
+            FacturaResource\Widgets\FacturaWidget::class,
+        ];
+    }
+
+    protected function beforeSave(): void
+    {
+        // Runs before the form fields are saved to the database.
+        $this->dispatch('updatePage');
+    }
 }

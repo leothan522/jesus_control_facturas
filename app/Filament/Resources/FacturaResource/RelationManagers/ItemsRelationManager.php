@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\FacturaResource\RelationManagers;
 
 use App\Models\Articulo;
+use App\Models\Factura;
 use App\Models\Item;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -98,19 +99,50 @@ class ItemsRelationManager extends RelationManager
                 Tables\Actions\CreateAction::make()
                 ->label('Agregar item')
                 ->modalHeading('Agregar item')
-                ->modalWidth(MaxWidth::Medium),
+                ->modalWidth(MaxWidth::Medium)
+                    ->after(function (RelationManager $livewire) {
+                        // Runs after the form fields are saved to the database.
+                        $this->actualizarTotal($livewire);
+                    }),
             ])
             ->actions([
                 Tables\Actions\ActionGroup::make([
                     Tables\Actions\EditAction::make()
-                        ->modalWidth(MaxWidth::Medium),
-                    Tables\Actions\DeleteAction::make(),
+                        ->modalWidth(MaxWidth::Medium)
+                        ->after(function (RelationManager $livewire) {
+                            // Runs after the form fields are saved to the database.
+                            $this->actualizarTotal($livewire);
+                        }),
+                    Tables\Actions\DeleteAction::make()
+                        ->after(function (RelationManager $livewire) {
+                            // Runs after the form fields are saved to the database.
+                            $this->actualizarTotal($livewire);
+                        }),
                 ]),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+                    Tables\Actions\DeleteBulkAction::make()
+                        ->after(function (RelationManager $livewire) {
+                            // Runs after the form fields are saved to the database.
+                            $this->actualizarTotal($livewire);
+                        }),
                 ]),
             ]);
+    }
+
+    protected function actualizarTotal(RelationManager $livewire): void
+    {
+        $id = $livewire->getOwnerRecord()->id;
+        $items = Item::where('facturas_id', $id)->get();
+        $total = 0;
+        foreach ($items as $item) {
+            $precio = $item->precio;
+            $cantidad = $item->cantidad;
+            $total = $total + ($precio * $cantidad);
+        }
+        $factura = Factura::find($id);
+        $factura->total = $total;
+        $factura->save();
     }
 }

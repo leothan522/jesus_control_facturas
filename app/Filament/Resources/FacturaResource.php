@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\FacturaResource\Pages;
 use App\Filament\Resources\FacturaResource\RelationManagers;
+use App\Filament\Resources\FacturaResource\Widgets\FacturaWidget;
 use App\Models\Cliente;
 use App\Models\Empresa;
 use App\Models\Factura;
@@ -250,6 +251,13 @@ class FacturaResource extends Resource
             'index' => Pages\ListFacturas::route('/'),
             'create' => Pages\CreateFactura::route('/create'),
             'edit' => Pages\EditFactura::route('/{record}/edit'),
+        ];
+    }
+
+    public static function getWidgets(): array
+    {
+        return [
+            FacturaWidget::class,
         ];
     }
 }
