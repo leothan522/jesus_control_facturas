@@ -8,16 +8,22 @@ use App\Filament\Resources\FacturaResource\Widgets\FacturaWidget;
 use App\Models\Cliente;
 use App\Models\Empresa;
 use App\Models\Factura;
+use Carbon\Carbon;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Forms\Get;
 use Filament\Forms\Set;
 use Filament\Resources\Resource;
+use Filament\Support\Enums\MaxWidth;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
+use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
+use pxlrbt\FilamentExcel\Columns\Column;
+use pxlrbt\FilamentExcel\Exports\ExcelExport;
 
 class FacturaResource extends Resource
 {
@@ -77,6 +83,8 @@ class FacturaResource extends Resource
                                     ->email(),
                                 Forms\Components\Textarea::make('direccion'),
                             ])
+                            ->createOptionModalHeading('Nuevo Cliente')
+                            ->createOptionAction(fn($action) => $action->modalWidth(MaxWidth::Small))
                             ->afterStateUpdated(function (Get $get, Set $set) {
                                 $cliente = Cliente::find($get('clientes_id'));
                                 if ($cliente) {
@@ -172,75 +180,80 @@ class FacturaResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('numero')
-                    ->searchable(),
+                    ->searchable()
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('fecha')
                     ->date()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('moneda')
-                    ->searchable(),
-                Tables\Columns\IconColumn::make('es_credito')
-                    ->boolean(),
-                Tables\Columns\TextColumn::make('dias_credito')
-                    ->numeric()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('empresas_id')
-                    ->numeric()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('empresa_rif')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('empresa_nombre')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('empresa_telefono')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('empresa_email')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('clientes_id')
-                    ->numeric()
+                    ->searchable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('cliente_rif')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('cliente_nombre')
                     ->searchable(),
-                Tables\Columns\TextColumn::make('cliente_telefono')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('cliente_email')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('sub_total')
-                    ->numeric()
-                    ->sortable(),
                 Tables\Columns\TextColumn::make('total')
-                    ->numeric()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('estatus')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('created_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                Tables\Columns\TextColumn::make('updated_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                Tables\Columns\TextColumn::make('deleted_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
+                    ->prefix(fn($record): string => $record->moneda . " ")
+                    ->numeric(decimalPlaces: 2)
+                    ->alignEnd(),
+                Tables\Columns\IconColumn::make('estatus')
+                    ->boolean()
+                    ->trueIcon('heroicon-o-check-circle')
+                    ->falseIcon('heroicon-o-clock')
+                    ->trueColor('success')
+                    ->falseColor('gray')
+                    ->alignCenter(),
             ])
             ->filters([
-                //
+                Tables\Filters\SelectFilter::make('estatus')
+                    ->options([
+                        '0' => 'Pago Pendiente',
+                        '1' => 'Factura Cancelada',
+                    ]),
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
+                Tables\Actions\ActionGroup::make([
+                    Tables\Actions\Action::make('estatus')
+                        ->label('Cambiar Estatus')
+                        ->icon('heroicon-o-clock')
+                        ->action(function (Factura $record): void {
+                            $id = $record->getKey();
+                            $factura = Factura::find($id);
+                            if ($factura) {
+                                if ($factura->estatus) {
+                                    $factura->estatus = 0;
+                                } else {
+                                    $factura->estatus = 1;
+                                }
+                                $factura->save();
+                            }
+                        }),
+                    Tables\Actions\EditAction::make(),
+                    Tables\Actions\DeleteAction::make()
+                        ->before(fn($record) => $record->update(['numero' => '*' . $record->numero])),
+                ])
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make()
-                    ->before(function (Collection $records){
-                        foreach ($records as $record){
-                            $record->numero = '*'.$record->numero;
-                            $record->save();
-                        }
-                    })
+                        ->before(function (Collection $records) {
+                            foreach ($records as $record) {
+                                $record->numero = '*' . $record->numero;
+                                $record->save();
+                            }
+                        }),
+                ]),
+                ExportBulkAction::make()->exports([
+                    ExcelExport::make()->withColumns([
+                        Column::make('numero'),
+                        Column::make('fecha')
+                            ->formatStateUsing(fn ($record) => $record->fecha = Carbon::parse($record->fecha)->format('d-m-Y'))
+                            ->format(NumberFormat::FORMAT_DATE_DDMMYYYY),
+                        Column::make('cliente_rif'),
+                        Column::make('cliente_nombre'),
+                        Column::make('moneda'),
+                        Column::make('total')->format(NumberFormat::FORMAT_NUMBER_00),
+                        Column::make('estatus')
+                        ->formatStateUsing(fn($record) => $record->estatus ? 'Factura Cancelada' : 'Pago Pendiente'),
+                    ])
                 ]),
             ]);
     }

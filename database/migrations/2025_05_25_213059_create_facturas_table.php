@@ -33,7 +33,7 @@ return new class extends Migration
             $table->text('cliente_direccion')->nullable();
             $table->decimal('sub_total', 12, 2)->nullable();
             $table->decimal('total', 12, 2)->nullable();
-            $table->string('estatus')->nullable();
+            $table->boolean('estatus')->default(false);
             $table->foreign('empresas_id')->references('id')->on('empresas')->cascadeOnDelete();
             $table->foreign('clientes_id')->references('id')->on('clientes')->cascadeOnDelete();
             $table->timestamps();
