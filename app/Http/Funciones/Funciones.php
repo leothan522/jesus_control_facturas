@@ -20,7 +20,7 @@ function cerosIzquierda($cantidad, $cantCeros = 2): int|string
 function verImagen($path): string
 {
     $response  = 'img/placeholder.jpg';
-    if (!is_null($path)){
+    if (!empty($path)){
         $existe = file_exists(public_path('storage/'.$path));
         if ($existe){
             $response = storage_path('app/public/'.$path);
