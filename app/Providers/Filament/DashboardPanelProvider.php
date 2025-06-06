@@ -54,6 +54,7 @@ class DashboardPanelProvider extends PanelProvider
             ->authMiddleware([
                 Authenticate::class,
             ])
-            ->profile(isSimple: false);
+            ->profile(isSimple: false)
+            ->favicon(asset('favicons/favicon-32x32.png'));
     }
 }

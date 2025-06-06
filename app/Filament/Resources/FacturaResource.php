@@ -29,84 +29,84 @@ class FacturaResource extends Resource
         return $form
             ->schema([
                 Forms\Components\Fieldset::make()
-                ->schema([
-                    Forms\Components\TextInput::make('numero')
-                        ->default(function () {
-                            $empresa = Empresa::find(1);
-                            if ($empresa) {
-                                return $empresa->formato_factura."".$empresa->correlativo_factura;
-                            }
-                            return null;
-                        })
-                        ->required()
-                        ->unique()
-                        ->maxLength(255),
-                    Forms\Components\DatePicker::make('fecha')
-                        ->required(),
-                    Forms\Components\Select::make('moneda')
-                        ->options([
-                            'Bs.' => 'Bs.',
-                            'USD' => 'USD'
-                        ])
-                        ->required()
-                ])
-                ->columns(3),
+                    ->schema([
+                        Forms\Components\TextInput::make('numero')
+                            ->default(function () {
+                                $empresa = Empresa::find(1);
+                                if ($empresa) {
+                                    return $empresa->formato_factura . "" . $empresa->correlativo_factura;
+                                }
+                                return null;
+                            })
+                            ->required()
+                            ->unique(ignoreRecord: true)
+                            ->maxLength(255),
+                        Forms\Components\DatePicker::make('fecha')
+                            ->required(),
+                        Forms\Components\Select::make('moneda')
+                            ->options([
+                                'Bs.' => 'Bs.',
+                                'USD' => 'USD'
+                            ])
+                            ->required()
+                    ])
+                    ->columns(3),
                 Forms\Components\Fieldset::make()
-                ->schema([
-                    Forms\Components\Select::make('clientes_id')
-                        ->label('Cliente')
-                        ->relationship('cliente', 'nombre')
-                        ->searchable(['rif', 'nombre'])
-                        ->preload()
-                        ->required()
-                        ->live()
-                        ->createOptionForm([
-                            Forms\Components\TextInput::make('rif')
-                                ->unique()
-                                ->maxLength(255)
-                                ->required(),
-                            Forms\Components\TextInput::make('nombre')
-                                ->maxLength(255)
-                                ->required(),
-                            Forms\Components\TextInput::make('telefono')
-                                ->tel()
-                                ->telRegex('/^[+]*[(]{0,1}[0-9]{1,4}[)]{0,1}[-\s\.\/0-9]*$/'),
-                            Forms\Components\TextInput::make('email')
-                                ->email(),
-                            Forms\Components\Textarea::make('direccion'),
-                        ])
-                        ->afterStateUpdated(function (Get $get, Set $set){
-                            $cliente = Cliente::find($get('clientes_id'));
-                            if ($cliente){
-                                $set('cliente_rif', $cliente->rif);
-                                $set('cliente_nombre', $cliente->nombre);
-                                $set('cliente_telefono', $cliente->telefono);
-                                $set('cliente_email', $cliente->email);
-                                $set('cliente_direccion', $cliente->direccion);
-                            }else{
-                                $set('cliente_rif', '');
-                                $set('cliente_nombre', '');
-                                $set('cliente_telefono', '');
-                                $set('cliente_email', '');
-                                $set('cliente_direccion', '');
-                            }
-                        })
-                    ->columnSpan(2),
-                    Forms\Components\Toggle::make('es_credito')
-                    ->inline(false)
-                    ->live()
-                    ->afterStateUpdated(function (Get $get, Set $set){
-                        $isCredito = $get('es_credito');
-                        if (!$isCredito) {
-                            $set('dias_credito', '');
-                        }
-                    }),
-                    Forms\Components\TextInput::make('dias_credito')
-                        ->numeric()
-                    ->requiredIf('es_credito', true)
-                        ->readOnly(fn(Get $get) => !$get('es_credito')),
-                ])
-                ->columns(4),
+                    ->schema([
+                        Forms\Components\Select::make('clientes_id')
+                            ->label('Cliente')
+                            ->relationship('cliente', 'nombre')
+                            ->searchable(['rif', 'nombre'])
+                            ->preload()
+                            ->required()
+                            ->live()
+                            ->createOptionForm([
+                                Forms\Components\TextInput::make('rif')
+                                    ->unique()
+                                    ->maxLength(255)
+                                    ->required(),
+                                Forms\Components\TextInput::make('nombre')
+                                    ->maxLength(255)
+                                    ->required(),
+                                Forms\Components\TextInput::make('telefono')
+                                    ->tel()
+                                    ->telRegex('/^[+]*[(]{0,1}[0-9]{1,4}[)]{0,1}[-\s\.\/0-9]*$/'),
+                                Forms\Components\TextInput::make('email')
+                                    ->email(),
+                                Forms\Components\Textarea::make('direccion'),
+                            ])
+                            ->afterStateUpdated(function (Get $get, Set $set) {
+                                $cliente = Cliente::find($get('clientes_id'));
+                                if ($cliente) {
+                                    $set('cliente_rif', $cliente->rif);
+                                    $set('cliente_nombre', $cliente->nombre);
+                                    $set('cliente_telefono', $cliente->telefono);
+                                    $set('cliente_email', $cliente->email);
+                                    $set('cliente_direccion', $cliente->direccion);
+                                } else {
+                                    $set('cliente_rif', '');
+                                    $set('cliente_nombre', '');
+                                    $set('cliente_telefono', '');
+                                    $set('cliente_email', '');
+                                    $set('cliente_direccion', '');
+                                }
+                            })
+                            ->columnSpan(2),
+                        Forms\Components\Toggle::make('es_credito')
+                            ->inline(false)
+                            ->live()
+                            ->afterStateUpdated(function (Get $get, Set $set) {
+                                $isCredito = $get('es_credito');
+                                if (!$isCredito) {
+                                    $set('dias_credito', '');
+                                }
+                            }),
+                        Forms\Components\TextInput::make('dias_credito')
+                            ->numeric()
+                            ->requiredIf('es_credito', true)
+                            ->readOnly(fn(Get $get) => !$get('es_credito')),
+                    ])
+                    ->columns(4),
                 Forms\Components\Hidden::make('empresas_id')
                     ->default(1),
                 Forms\Components\Hidden::make('empresa_rif')

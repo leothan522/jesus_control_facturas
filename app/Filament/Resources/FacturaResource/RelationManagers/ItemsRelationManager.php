@@ -29,6 +29,7 @@ class ItemsRelationManager extends RelationManager
                     ->relationship('articulo', 'descripcion')
                     ->searchable()
                     ->preload()
+                    ->live()
                     ->createOptionForm([
                         Forms\Components\TextInput::make('descripcion')
                             ->unique()
@@ -39,20 +40,20 @@ class ItemsRelationManager extends RelationManager
                         Forms\Components\TextInput::make('precio_dolar')
                             ->numeric(),
                     ])
-                    ->live()
-                ->afterStateUpdated(function (RelationManager $livewire, Get $get, Set $set){
-                    $factura = $livewire->getOwnerRecord();
-                    $articulos_id = $get('articulos_id');
-                    $articulo = Articulo::find($articulos_id);
-                    if ($articulo) {
-                        $set('descripcion', $articulo->descripcion);
-                        if ($factura->moneda == 'USD'){
-                            $set('precio', $articulo->precio_dolar);
-                        }else{
-                            $set('precio', $articulo->precio_bs);
+                    ->createOptionAction(fn($action) => $action->modalWidth(MaxWidth::Small))
+                    ->afterStateUpdated(function (RelationManager $livewire, Get $get, Set $set) {
+                        $factura = $livewire->getOwnerRecord();
+                        $articulos_id = $get('articulos_id');
+                        $articulo = Articulo::find($articulos_id);
+                        if ($articulo) {
+                            $set('descripcion', $articulo->descripcion);
+                            if ($factura->moneda == 'USD') {
+                                $set('precio', $articulo->precio_dolar);
+                            } else {
+                                $set('precio', $articulo->precio_bs);
+                            }
                         }
-                    }
-                }),
+                    }),
                 Forms\Components\Hidden::make('descripcion')
                     ->required(),
                 Forms\Components\TextInput::make('cantidad')
@@ -76,30 +77,30 @@ class ItemsRelationManager extends RelationManager
             ->columns([
                 Tables\Columns\TextColumn::make('descripcion'),
                 Tables\Columns\TextColumn::make('precio')
-                    ->prefix(fn(Item $item): string => $item->moneda." ")
+                    ->prefix(fn(Item $item): string => $item->moneda . " ")
                     ->numeric(decimalPlaces: 2),
                 Tables\Columns\TextColumn::make('cantidad')
-                ->numeric(decimalPlaces: 2)
-                ->alignEnd(),
+                    ->numeric(decimalPlaces: 2)
+                    ->alignEnd(),
                 Tables\Columns\TextColumn::make('total')
                     ->label('Sub Total')
-                ->numeric(decimalPlaces: 2)
-                ->default(function (Item $item){
-                    $precio = $item->precio;
-                    $cantidad = $item->cantidad;
-                    $total = $precio*$cantidad;
-                    return $total;
-                })
-                ->alignEnd(),
+                    ->numeric(decimalPlaces: 2)
+                    ->default(function (Item $item) {
+                        $precio = $item->precio;
+                        $cantidad = $item->cantidad;
+                        $total = $precio * $cantidad;
+                        return $total;
+                    })
+                    ->alignEnd(),
             ])
             ->filters([
                 //
             ])
             ->headerActions([
                 Tables\Actions\CreateAction::make()
-                ->label('Agregar item')
-                ->modalHeading('Agregar item')
-                ->modalWidth(MaxWidth::Medium)
+                    ->label('Agregar item')
+                    ->modalHeading('Agregar item')
+                    ->modalWidth(MaxWidth::Medium)
                     ->after(function (RelationManager $livewire) {
                         // Runs after the form fields are saved to the database.
                         $this->actualizarTotal($livewire);
