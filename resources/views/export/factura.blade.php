@@ -194,14 +194,14 @@
         @endif--}}
 
         <footer class="fixed bottom-0 left-0 bg-slate-100 w-full text-neutral-600 text-center text-xs py-3 text-uppercase">
-            {{ $factura->empresa_nombre }}
-            @if($factura->empresa_email)
+            {{ $empresa->nombre }}
+            @if($empresa->email)
                 <span class="text-slate-300 px-2">|</span>
-                {{ $factura->empresa_email }}
+                {{ $empresa->email }}
             @endif
-            @if($factura->empresa_telefono)
+            @if($empresa->telefono)
                 <span class="text-slate-300 px-2">|</span>
-                {{ $factura->empresa_telefono }}
+                {{ $empresa->telefono }}
             @endif
         </footer>
     </div>
