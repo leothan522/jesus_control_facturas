@@ -8,6 +8,7 @@ use App\Filament\Resources\FacturaResource\Widgets\FacturaWidget;
 use App\Models\Cliente;
 use App\Models\Empresa;
 use App\Models\Factura;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -20,6 +21,7 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Support\Facades\Blade;
 use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 use pxlrbt\FilamentExcel\Columns\Column;
@@ -226,6 +228,11 @@ class FacturaResource extends Resource
                                 $factura->save();
                             }
                         }),
+                    Tables\Actions\Action::make('pdf')
+                        ->label('Generar Nota')
+                        ->icon('heroicon-o-document-text')
+                        ->url(fn (Factura $record) => route('pdf', $record))
+                        ->openUrlInNewTab(),
                     Tables\Actions\EditAction::make(),
                     Tables\Actions\DeleteAction::make()
                         ->before(fn($record) => $record->update(['numero' => '*' . $record->numero])),
@@ -245,14 +252,14 @@ class FacturaResource extends Resource
                     ExcelExport::make()->withColumns([
                         Column::make('numero'),
                         Column::make('fecha')
-                            ->formatStateUsing(fn ($record) => $record->fecha = Carbon::parse($record->fecha)->format('d-m-Y'))
+                            ->formatStateUsing(fn($record) => $record->fecha = Carbon::parse($record->fecha)->format('d-m-Y'))
                             ->format(NumberFormat::FORMAT_DATE_DDMMYYYY),
                         Column::make('cliente_rif'),
                         Column::make('cliente_nombre'),
                         Column::make('moneda'),
                         Column::make('total')->format(NumberFormat::FORMAT_NUMBER_00),
                         Column::make('estatus')
-                        ->formatStateUsing(fn($record) => $record->estatus ? 'Factura Cancelada' : 'Pago Pendiente'),
+                            ->formatStateUsing(fn($record) => $record->estatus ? 'Factura Cancelada' : 'Pago Pendiente'),
                     ])
                 ]),
             ]);

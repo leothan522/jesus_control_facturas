@@ -16,3 +16,15 @@ function cerosIzquierda($cantidad, $cantCeros = 2): int|string
     }
     return str_pad($cantidad, $cantCeros, "0", STR_PAD_LEFT);
 }
+
+function verImagen($path): string
+{
+    $response  = 'img/placeholder.jpg';
+    if (!is_null($path)){
+        $existe = file_exists(public_path('storage/'.$path));
+        if ($existe){
+            $response = storage_path('app/public/'.$path);
+        }
+    }
+    return $response;
+}
