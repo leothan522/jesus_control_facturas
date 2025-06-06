@@ -16,6 +16,7 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class FacturaResource extends Resource
@@ -34,7 +35,8 @@ class FacturaResource extends Resource
                             ->default(function () {
                                 $empresa = Empresa::find(1);
                                 if ($empresa) {
-                                    return $empresa->formato_factura . "" . $empresa->correlativo_factura;
+                                    $numero = $empresa->correlativo_factura ?? 1;
+                                    return $empresa->formato_factura . "" . cerosIzquierda($numero, 4);
                                 }
                                 return null;
                             })
@@ -232,7 +234,13 @@ class FacturaResource extends Resource
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+                    Tables\Actions\DeleteBulkAction::make()
+                    ->before(function (Collection $records){
+                        foreach ($records as $record){
+                            $record->numero = '*'.$record->numero;
+                            $record->save();
+                        }
+                    })
                 ]),
             ]);
     }

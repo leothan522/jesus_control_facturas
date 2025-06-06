@@ -15,6 +15,7 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Livewire\Attributes\On;
 
 class ItemsRelationManager extends RelationManager
 {
@@ -30,6 +31,7 @@ class ItemsRelationManager extends RelationManager
                     ->searchable()
                     ->preload()
                     ->live()
+                    ->required()
                     ->createOptionForm([
                         Forms\Components\TextInput::make('descripcion')
                             ->unique()
@@ -40,6 +42,7 @@ class ItemsRelationManager extends RelationManager
                         Forms\Components\TextInput::make('precio_dolar')
                             ->numeric(),
                     ])
+                    ->createOptionModalHeading('Nuevo Articulo')
                     ->createOptionAction(fn($action) => $action->modalWidth(MaxWidth::Small))
                     ->afterStateUpdated(function (RelationManager $livewire, Get $get, Set $set) {
                         $factura = $livewire->getOwnerRecord();
@@ -145,5 +148,11 @@ class ItemsRelationManager extends RelationManager
         $factura = Factura::find($id);
         $factura->total = $total;
         $factura->save();
+    }
+
+    #[On('updateTable')]
+    public function updateTable()
+    {
+        //refresh
     }
 }

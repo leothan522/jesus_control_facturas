@@ -38,5 +38,6 @@ class FacturaWidget extends BaseWidget
         $factura = Factura::find($facturas_id);
         $factura->total = $total;
         $factura->save();
+        $this->dispatch('updateTable');
     }
 }

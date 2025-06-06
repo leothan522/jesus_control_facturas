@@ -8,3 +8,11 @@ function formatoMillares($cantidad, $decimal = 2): string
     }
     return number_format($cantidad, $decimal, ',', '.');
 }
+
+function cerosIzquierda($cantidad, $cantCeros = 2): int|string
+{
+    if ($cantidad == 0) {
+        return 0;
+    }
+    return str_pad($cantidad, $cantCeros, "0", STR_PAD_LEFT);
+}
