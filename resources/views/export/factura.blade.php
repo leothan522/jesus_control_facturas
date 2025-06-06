@@ -17,7 +17,7 @@
                 <tr>
                     <td class="w-full align-top">
                         <div>
-                            <img src="{{ verImagen($empresa->image) }}" class="h-12"  alt="Logo"/>
+                            <img src="{{ verImagen($empresa->image ?? '') }}" class="h-12"  alt="Logo"/>
                         </div>
                     </td>
 
