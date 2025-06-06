@@ -12,7 +12,7 @@ class ExportController extends Controller
 {
     public function factuta(Factura $factura)
     {
-        $empresa = Empresa::where('facturas_id', $factura->id)->first();
+        $empresa = Empresa::find($factura->empresas_id);
         $items = Item::where('facturas_id', $factura->id)->get();
 
         /*return view('export.factura')
